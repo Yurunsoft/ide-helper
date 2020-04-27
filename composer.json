@@ -1,0 +1,19 @@
+{
+	"name": "yurunsoft/ide-helper",
+	"type": "composer-plugin",
+    "license": "MIT",
+    "autoload": {
+        "psr-4" : {
+            "Yurun\\IDEHelper\\": "src/"
+		}
+    },
+    "require": {
+        "composer-plugin-api": "^1.0"
+    },
+    "require-dev": {
+        "composer/composer": "~1.0"
+    },
+    "extra": {
+        "class": "Yurun\\IDEHelper\\Plugin"
+    }
+}
