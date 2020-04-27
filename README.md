@@ -8,6 +8,8 @@
 
 让 PHP 扩展支持 IDE 代码提示，通过在 composer.json 配置，可以支持所有扩展，包括但不限于 Swoole、Redis 等
 
+技术支持群: 17916227[![点击加群](https://pub.idqqimg.com/wpa/images/group.png "点击加群")](https://jq.qq.com/?_wv=1027&k=5wXf4Zq)，如有问题可以及时解答和修复。
+
 ## 使用
 
 在项目中引入`yurunsoft/ide-helper`，然后在`composer.json`的`extra`中配置。
