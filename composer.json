@@ -9,10 +9,10 @@
     },
     "require": {
         "php": ">=7.0",
-        "composer-plugin-api": "^1.0"
+        "composer-plugin-api": "^1.0|^2.0"
     },
     "require-dev": {
-        "composer/composer": "~1.0"
+        "composer/composer": "~1.0|~2.0"
     },
     "extra": {
         "class": "Yurun\\IDEHelper\\Plugin"
