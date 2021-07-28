@@ -24,6 +24,11 @@ class Plugin implements PluginInterface, EventSubscriberInterface
      */
     protected $io;
 
+    /**
+     * @var bool
+     */
+    protected $dev;
+
     public function __construct($dev = false)
     {
         $this->dev = $dev;
@@ -132,7 +137,7 @@ class Plugin implements PluginInterface, EventSubscriberInterface
                 $fullpath = $dir . '/' . $file;
                 if(is_dir($fullpath))
                 {
-                    self::deleteDir($fullpath);
+                    $this->deleteDir($fullpath);
                 }
                 else
                 {

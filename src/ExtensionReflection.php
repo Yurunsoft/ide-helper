@@ -1,6 +1,8 @@
 <?php
 namespace Yurun\IDEHelper;
 
+use Yurun\IDEHelper\ReflectionUtil;
+
 class ExtensionReflection
 {
     /**
@@ -75,14 +77,9 @@ CODE;
             {
                 // 方法参数定义
                 $args[] = $this->getMethodParamDefine($param);
-                $type = $param->getType();
-                $comments[] = '@var ' . ($type ? $type->getName() : 'mixed') . ' $' . $param->name;
+                $comments[] = '@var ' . ReflectionUtil::getTypeComments($param->getType()) . '$' . $param->getName();
             }
-            $return = $function->getReturnType();
-            if(null !== $return)
-            {
-                $comments[] = '@return ' . $return->getName();
-            }
+            $comments[] = '@return ' . ReflectionUtil::getTypeComments($function->getReturnType());
             $args = implode(', ', $args);
             if([] === $comments)
             {
@@ -139,18 +136,8 @@ CODE;
      */
     private static function getMethodParamDefine(\ReflectionParameter $param)
     {
-        $result = '';
         // 类型
-        $paramType = $param->getType();
-        if($paramType)
-        {
-            $paramType = $paramType->getName();
-        }
-        if(null !== $paramType && $param->allowsNull())
-        {
-            $paramType = '?' . $paramType;
-        }
-        $result .= null === $paramType ? '' : ((string)$paramType . ' ');
+        $result = ReflectionUtil::getTypeCode($param->getType());
         if($param->isPassedByReference())
         {
             // 引用传参
@@ -203,7 +190,7 @@ CODE;
      * 生成类方法
      *
      * @param \ReflectionClass $class
-     * @return void
+     * @return string
      */
     private function getClassMethods($class)
     {
@@ -217,14 +204,9 @@ CODE;
             {
                 // 方法参数定义
                 $args[] = $this->getMethodParamDefine($param);
-                $type = $param->getType();
-                $comments[] = '@var ' . ($type ? $type->getName() : 'mixed') . ' $' . $param->name;
+                $comments[] = '@var ' . ReflectionUtil::getTypeComments($param->getType()) . ' $' . $param->name;
             }
-            $return = $method->getReturnType();
-            if(null !== $return)
-            {
-                $comments[] = '@return ' . $return->getName();
-            }
+            $comments[] = '@return ' . ReflectionUtil::getTypeComments($method->getReturnType());
             $args = implode(', ', $args);
             if([] === $comments)
             {
@@ -262,7 +244,7 @@ CODE;
      * 生成类属性
      *
      * @param \ReflectionClass $class
-     * @return void
+     * @return string
      */
     public function getClassProperties($class)
     {
