@@ -77,7 +77,7 @@ CODE;
             {
                 // 方法参数定义
                 $args[] = $this->getMethodParamDefine($param);
-                $comments[] = '@var ' . ReflectionUtil::getTypeComments($param->getType()) . '$' . $param->getName();
+                $comments[] = '@var ' . ReflectionUtil::getTypeComments($param->getType()) . ' $' . $param->getName();
             }
             $comments[] = '@return ' . ReflectionUtil::getTypeComments($function->getReturnType());
             $args = implode(', ', $args);
@@ -137,7 +137,7 @@ CODE;
     private static function getMethodParamDefine(\ReflectionParameter $param)
     {
         // 类型
-        $result = ReflectionUtil::getTypeCode($param->getType());
+        $result = ReflectionUtil::getTypeCode($param->getType()) . ' ';
         if($param->isPassedByReference())
         {
             // 引用传参
