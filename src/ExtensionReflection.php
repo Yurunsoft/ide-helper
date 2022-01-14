@@ -68,12 +68,12 @@ CODE;
      */
     private function generateFunctions()
     {
-        $result = '<?php' . PHP_EOL;
-        foreach($this->ref->getFunctions() as $function)
+        $namespaceFunctions = [];
+        foreach ($this->ref->getFunctions() as $function)
         {
             $args = [];
             $comments = [];
-            foreach($function->getParameters() as $param)
+            foreach ($function->getParameters() as $param)
             {
                 // 方法参数定义
                 $args[] = $this->getMethodParamDefine($param);
@@ -81,25 +81,39 @@ CODE;
             }
             $comments[] = '@return ' . ReflectionUtil::getTypeComments($function->getReturnType());
             $args = implode(', ', $args);
-            if([] === $comments)
+            if ([] === $comments)
             {
                 $comment = '';
             }
             else
             {
-                $comment = implode(PHP_EOL . ' * ', $comments);
+                $comment = implode(\PHP_EOL . '     * ', $comments);
                 $comment = <<<COMMENT
-
-/**
- * {$comment}
- */
+    /**
+     * {$comment}
+     */
 COMMENT;
             }
-            $result .= <<<CODE
-{$comment}
-function {$function->name}({$args}){}
+            $namespace = $function->getNamespaceName();
+            if (!isset($namespaceFunctions[$namespace]))
+            {
+                $namespaceFunctions[$namespace] = <<<CODE
+namespace {$namespace}
+{
 
 CODE;
+            }
+            $namespaceFunctions[$namespace] .= <<<CODE
+{$comment}
+    function {$function->getShortName()}({$args}){}
+
+
+CODE;
+        }
+        $result = '<?php' . \PHP_EOL;
+        foreach ($namespaceFunctions as $content)
+        {
+            $result .= $content . '}' . \PHP_EOL;
         }
         file_put_contents($this->savePath . '/functions.php', $result);
     }
