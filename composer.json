@@ -12,7 +12,8 @@
         "composer-plugin-api": "^1.0|^2.0"
     },
     "require-dev": {
-        "composer/composer": "~1.0|~2.0"
+        "composer/composer": "~1.0|~2.0",
+        "friendsofphp/php-cs-fixer": "~2.19.3"
     },
     "extra": {
         "class": "Yurun\\IDEHelper\\Plugin"

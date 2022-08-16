@@ -1,3 +1,4 @@
 /output
 /*.lock
 /vendor
+*.cache

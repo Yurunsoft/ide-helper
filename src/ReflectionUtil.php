@@ -60,7 +60,7 @@ class ReflectionUtil
                 $result[] = 'null';
             }
 
-            return implode('|', $result);
+            return \implode('|', $result);
         }
         elseif ($type instanceof ReflectionIntersectionType)
         {
@@ -70,11 +70,11 @@ class ReflectionUtil
                 $result[] = self::getTypeComments($subType, $className);
             }
 
-            return implode('&', $result);
+            return \implode('&', $result);
         }
         else
         {
-            throw new InvalidArgumentException(sprintf('Unknown type %s', \get_class($type)));
+            throw new InvalidArgumentException(\sprintf('Unknown type %s', \get_class($type)));
         }
     }
 
@@ -122,7 +122,7 @@ class ReflectionUtil
                 $result[] = 'null';
             }
 
-            return implode('|', $result);
+            return \implode('|', $result);
         }
         elseif ($type instanceof ReflectionIntersectionType)
         {
@@ -132,11 +132,11 @@ class ReflectionUtil
                 $result[] = self::getTypeCode($subType, $className);
             }
 
-            return implode('&', $result);
+            return \implode('&', $result);
         }
         else
         {
-            throw new InvalidArgumentException(sprintf('Unknown type %s', \get_class($type)));
+            throw new InvalidArgumentException(\sprintf('Unknown type %s', \get_class($type)));
         }
     }
 
@@ -150,10 +150,10 @@ class ReflectionUtil
         {
             return $type->allowsNull();
         }
-        $checkTypes = explode('|', $checkType);
+        $checkTypes = \explode('|', $checkType);
         if ('?' === $checkTypes[0][0])
         {
-            $checkTypes[0][0] = substr($checkTypes[0][0], 1);
+            $checkTypes[0][0] = \substr($checkTypes[0][0], 1);
         }
         if ($type instanceof ReflectionNamedType)
         {
@@ -169,14 +169,14 @@ class ReflectionUtil
                 }
             }
 
-            return $typeStr === $checkType || \in_array($typeStr, $checkTypes) || is_subclass_of($checkType, $typeStr);
+            return $typeStr === $checkType || \in_array($typeStr, $checkTypes) || \is_subclass_of($checkType, $typeStr);
         }
         if ($type instanceof ReflectionUnionType)
         {
             foreach ($type->getTypes() as $subType)
             {
-                $typeStr = ltrim(self::getTypeCode($subType, $className), '\\');
-                if ($typeStr === $checkType || \in_array($typeStr, $checkTypes) || is_subclass_of($checkType, $typeStr))
+                $typeStr = \ltrim(self::getTypeCode($subType, $className), '\\');
+                if ($typeStr === $checkType || \in_array($typeStr, $checkTypes) || \is_subclass_of($checkType, $typeStr))
                 {
                     return true;
                 }
@@ -196,6 +196,6 @@ class ReflectionUtil
 
             return true;
         }
-        throw new InvalidArgumentException(sprintf('Unknown type %s', \get_class($type)));
+        throw new InvalidArgumentException(\sprintf('Unknown type %s', \get_class($type)));
     }
 }
