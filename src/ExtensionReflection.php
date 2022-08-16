@@ -1,19 +1,20 @@
 <?php
-namespace Yurun\IDEHelper;
 
-use Yurun\IDEHelper\ReflectionUtil;
+declare(strict_types=1);
+
+namespace Yurun\IDEHelper;
 
 class ExtensionReflection
 {
     /**
-     * ReflectionExtension
+     * ReflectionExtension.
      *
      * @var ReflectionExtension
      */
     private $ref;
 
     /**
-     * 保存路径
+     * 保存路径.
      *
      * @var string
      */
@@ -25,17 +26,18 @@ class ExtensionReflection
     }
 
     /**
-     * 保存
+     * 保存.
      *
      * @param string $path
+     *
      * @return void
      */
     public function save($path)
     {
         $this->savePath = $path;
-        if(!is_dir($path))
+        if (!\is_dir($path))
         {
-            mkdir($path, 0777, true);
+            \mkdir($path, 0777, true);
         }
         $this->generateConsts();
         $this->generateFunctions();
@@ -43,26 +45,26 @@ class ExtensionReflection
     }
 
     /**
-     * 生成常量
+     * 生成常量.
      *
      * @return void
      */
     private function generateConsts()
     {
-        $result = '<?php' . PHP_EOL;
-        foreach($this->ref->getConstants() as $name => $value)
+        $result = '<?php' . \PHP_EOL;
+        foreach ($this->ref->getConstants() as $name => $value)
         {
-            $value = var_export($value, true);
+            $value = \var_export($value, true);
             $result .= <<<CODE
 define('{$name}', {$value});
 
 CODE;
         }
-        file_put_contents($this->savePath . '/consts.php', $result);
+        \file_put_contents($this->savePath . '/consts.php', $result);
     }
 
     /**
-     * 生成函数
+     * 生成函数.
      *
      * @return void
      */
@@ -80,14 +82,14 @@ CODE;
                 $comments[] = '@var ' . ReflectionUtil::getTypeComments($param->getType()) . ' $' . $param->getName();
             }
             $comments[] = '@return ' . ReflectionUtil::getTypeComments($function->getReturnType());
-            $args = implode(', ', $args);
+            $args = \implode(', ', $args);
             if ([] === $comments)
             {
                 $comment = '';
             }
             else
             {
-                $comment = implode(\PHP_EOL . '     * ', $comments);
+                $comment = \implode(\PHP_EOL . '     * ', $comments);
                 $comment = <<<COMMENT
     /**
      * {$comment}
@@ -115,49 +117,49 @@ CODE;
         {
             $result .= $content . '}' . \PHP_EOL;
         }
-        file_put_contents($this->savePath . '/functions.php', $result);
+        \file_put_contents($this->savePath . '/functions.php', $result);
     }
 
     /**
-     * 生成类、接口、trait
+     * 生成类、接口、trait.
      *
      * @return void
      */
     private function generateClasses()
     {
-        foreach($this->ref->getClassNames() as $className)
+        foreach ($this->ref->getClassNames() as $className)
         {
             $class = new \ReflectionClass($className);
-            if($class->isInterface())
+            if ($class->isInterface())
             {
-                $this->generateInterface($class);
+                $this->generateInterface($class, $className);
             }
-            else if($class->isTrait())
+            elseif ($class->isTrait())
             {
-                $this->generateTrait($class);
+                $this->generateTrait($class, $className);
             }
             else
             {
-                $this->generateClass($class);
+                $this->generateClass($class, $className);
             }
         }
     }
 
     /**
-     * 获取方法参数定义模版
-     * @param \ReflectionParameter $param
+     * 获取方法参数定义模版.
+     *
      * @return string
      */
     private static function getMethodParamDefine(\ReflectionParameter $param)
     {
         // 类型
         $result = ReflectionUtil::getTypeCode($param->getType()) . ' ';
-        if($param->isPassedByReference())
+        if ($param->isPassedByReference())
         {
             // 引用传参
             $result .= '&';
         }
-        else if($param->isVariadic())
+        elseif ($param->isVariadic())
         {
             // 可变参数...
             $result .= '...';
@@ -165,70 +167,74 @@ CODE;
         // $参数名
         $result .= '$' . $param->name;
         // 默认值
-        if($param->isOptional() && !$param->isVariadic())
+        if ($param->isOptional() && !$param->isVariadic())
         {
-            if($param->isDefaultValueAvailable())
+            if ($param->isDefaultValueAvailable())
             {
-                $result .= ' = ' . var_export($param->getDefaultValue(), true);
+                $result .= ' = ' . \var_export($param->getDefaultValue(), true);
             }
             else
             {
                 $result .= ' = null';
             }
         }
+
         return $result;
     }
 
     /**
-     * 生成类常量
+     * 生成类常量.
      *
      * @param \ReflectionClass $class
+     *
      * @return string
      */
     private function getClassConsts($class)
     {
         $result = '';
-        foreach($class->getConstants() as $name => $value)
+        foreach ($class->getConstants() as $name => $value)
         {
-            $value = var_export($value, true);
+            $value = \var_export($value, true);
             $result .= <<<CODE
 
     const {$name} = $value;
 
 CODE;
         }
+
         return $result;
     }
 
     /**
-     * 生成类方法
+     * 生成类方法.
      *
      * @param \ReflectionClass $class
+     *
      * @return string
      */
     private function getClassMethods($class)
     {
         $result = '';
 
-        foreach($class->getMethods(\ReflectionMethod::IS_PUBLIC) as $method)
+        foreach ($class->getMethods(\ReflectionMethod::IS_PUBLIC) as $method)
         {
             $args = [];
             $comments = [];
-            foreach($method->getParameters() as $param)
+            foreach ($method->getParameters() as $param)
             {
                 // 方法参数定义
                 $args[] = $this->getMethodParamDefine($param);
                 $comments[] = '@var ' . ReflectionUtil::getTypeComments($param->getType()) . ' $' . $param->name;
             }
             $comments[] = '@return ' . ReflectionUtil::getTypeComments($method->getReturnType());
-            $args = implode(', ', $args);
-            if([] === $comments)
+            $args = \implode(', ', $args);
+            if ([] === $comments)
             {
                 $comment = '';
             }
             else
             {
-                $comment = implode(PHP_EOL . '     * ', $comments);
+                $comment = \implode(\PHP_EOL . '     * ', $comments);
                 $comment = <<<COMMENT
 
     /**
@@ -236,7 +242,7 @@ CODE;
      */
 COMMENT;
             }
-            if($method->isStatic())
+            if ($method->isStatic())
             {
                 $static = ' static';
             }
@@ -255,15 +261,16 @@ CODE;
     }
 
     /**
-     * 生成类属性
+     * 生成类属性.
      *
      * @param \ReflectionClass $class
+     *
      * @return string
      */
     public function getClassProperties($class)
     {
         $result = '';
-        foreach($class->getProperties(\ReflectionProperty::IS_PUBLIC) as $property)
+        foreach ($class->getProperties(\ReflectionProperty::IS_PUBLIC) as $property)
         {
             $static = $property->isStatic() ? ' static' : '';
             $name = $property->name;
@@ -272,30 +279,53 @@ CODE;
 
 CODE;
         }
+
         return $result;
     }
 
     /**
-     * 生成接口
+     * 生成接口.
      *
      * @param \ReflectionClass $class
+     * @param string           $className
+     *
      * @return void
      */
-    private function generateInterface($class)
+    private function generateInterface($class, $className = null)
     {
         $consts = $this->getClassConsts($class);
         $methods = $this->getClassMethods($class);
 
-        $result = '<?php' . PHP_EOL;
+        $result = '<?php' . \PHP_EOL;
 
-        $className = $class->getShortName();
-        $namespace = $class->getNamespaceName();
-        if('' !== $namespace)
+        if (null === $className)
         {
-            $namespace = 'namespace ' . $namespace . ';';
+            $className = $class->getShortName();
+            $namespace = $class->getNamespaceName();
+        }
+        else
+        {
+            if (false === \strpos($className, '\\'))
+            {
+                $namespace = '';
+            }
+            else
+            {
+                $lastIndex = \strrpos($className, '\\');
+                $namespace = \substr($className, 0, $lastIndex);
+                $className = \substr($className, $lastIndex + 1);
+            }
+        }
+        if ('' !== $namespace)
+        {
+            $namespaceDefine = 'namespace ' . $namespace . ';';
+        }
+        else
+        {
+            $namespaceDefine = '';
         }
         $result .= <<<CODE
-{$namespace}
+{$namespaceDefine}
 
 interface {$className}
 {
@@ -303,36 +333,58 @@ interface {$className}
 }
 
 CODE;
-        $path = $this->savePath . '/interfaces/' . str_replace('\\', '/', $class->getNamespaceName()) . '/';
-        if(!is_dir($path))
+        $path = $this->savePath . '/interfaces/' . \str_replace('\\', '/', $namespace) . '/';
+        if (!\is_dir($path))
         {
-            mkdir($path, 0777, true);
+            \mkdir($path, 0777, true);
         }
-        file_put_contents($path . $class->getShortName() . '.php', $result);
+        \file_put_contents($path . $className . '.php', $result);
     }
 
     /**
-     * 生成trait
+     * 生成trait.
      *
      * @param \ReflectionClass $class
+     * @param string           $className
+     *
      * @return void
      */
-    private function generateTrait($class)
+    private function generateTrait($class, $className = null)
     {
         $consts = $this->getClassConsts($class);
         $methods = $this->getClassMethods($class);
         $properties = $this->getClassProperties($class);
 
-        $result = '<?php' . PHP_EOL;
+        $result = '<?php' . \PHP_EOL;
 
-        $className = $class->getShortName();
-        $namespace = $class->getNamespaceName();
-        if('' !== $namespace)
+        if (null === $className)
         {
-            $namespace = 'namespace ' . $namespace . ';';
+            $className = $class->getShortName();
+            $namespace = $class->getNamespaceName();
+        }
+        else
+        {
+            if (false === \strpos($className, '\\'))
+            {
+                $namespace = '';
+            }
+            else
+            {
+                $lastIndex = \strrpos($className, '\\');
+                $namespace = \substr($className, 0, $lastIndex);
+                $className = \substr($className, $lastIndex + 1);
+            }
+        }
+        if ('' !== $namespace)
+        {
+            $namespaceDefine = 'namespace ' . $namespace . ';';
+        }
+        else
+        {
+            $namespaceDefine = '';
         }
         $result .= <<<CODE
-{$namespace}
+{$namespaceDefine}
 
 trait {$className}
 {
@@ -340,36 +392,58 @@ trait {$className}
 }
 
 CODE;
-        $path = $this->savePath . '/traits/' . str_replace('\\', '/', $class->getNamespaceName()) . '/';
-        if(!is_dir($path))
+        $path = $this->savePath . '/traits/' . \str_replace('\\', '/', $namespace) . '/';
+        if (!\is_dir($path))
         {
-            mkdir($path, 0777, true);
+            \mkdir($path, 0777, true);
         }
-        file_put_contents($path . $class->getShortName() . '.php', $result);
+        \file_put_contents($path . $className . '.php', $result);
     }
 
     /**
-     * 生成类
+     * 生成类.
      *
      * @param \ReflectionClass $class
+     * @param string           $className
+     *
      * @return void
      */
-    private function generateClass($class)
+    private function generateClass($class, $className = null)
     {
         $consts = $this->getClassConsts($class);
         $methods = $this->getClassMethods($class);
         $properties = $this->getClassProperties($class);
 
-        $result = '<?php' . PHP_EOL;
+        $result = '<?php' . \PHP_EOL;
 
-        $className = $class->getShortName();
-        $namespace = $class->getNamespaceName();
-        if('' !== $namespace)
+        if (null === $className)
         {
-            $namespace = 'namespace ' . $namespace . ';';
+            $className = $class->getShortName();
+            $namespace = $class->getNamespaceName();
+        }
+        else
+        {
+            if (false === \strpos($className, '\\'))
+            {
+                $namespace = '';
+            }
+            else
+            {
+                $lastIndex = \strrpos($className, '\\');
+                $namespace = \substr($className, 0, $lastIndex);
+                $className = \substr($className, $lastIndex + 1);
+            }
+        }
+        if ('' !== $namespace)
+        {
+            $namespaceDefine = 'namespace ' . $namespace . ';';
+        }
+        else
+        {
+            $namespaceDefine = '';
         }
         $result .= <<<CODE
-{$namespace}
+{$namespaceDefine}
 
 class {$className}
 {
@@ -377,19 +451,19 @@ class {$className}
 }
 
 CODE;
-        $path = $this->savePath . '/classes/' . str_replace('\\', '/', $class->getNamespaceName()) . '/';
-        if(!is_dir($path))
+        $path = $this->savePath . '/classes/' . \str_replace('\\', '/', $namespace) . '/';
+        if (!\is_dir($path))
         {
-            mkdir($path, 0777, true);
+            \mkdir($path, 0777, true);
         }
-        file_put_contents($path . $class->getShortName() . '.php', $result);
+        \file_put_contents($path . $className . '.php', $result);
     }
 
     /**
-     * Get reflectionExtension
+     * Get reflectionExtension.
      *
      * @return \ReflectionExtension
-     */ 
+     */
     public function getRef()
     {
         return $this->ref;
